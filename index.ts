@@ -1,5 +1,9 @@
 const express = require('express');
-import router from "./src/routes";
+import router from "./src/network";
+
+const serve = express();
+router(serve);
+
 //traspilar
 //EcmaScript ES modules
 //import express from 'express';
