@@ -1,15 +1,30 @@
-import { Connection} from "mysql2"
-export class UsersUtils {
+import { Connection }  from "mysql2";
+import redis from "../../services/redis";
 
+export class UserUtils {
     private database;
 
-    constructor(db): Connection {
+    constructor(db) {
         this.database = db;
-}
-    async function getUsers(){
-        const [rows, fields] =await this.database.query("SELECT * FROM users")
-        return {
-        rows,
-        fields}
+    }
+
+    async getUser() {
+        const existCahce = await redis.get('allUsers');
+        if (existCahce) {
+            return JSON.parse(existCahce);
+        } 
+        const [rows, fields] = await this.database.query('SELECT * FROM users');
+        const sendable = {
+            rows,
+            fields
+        }
+        await redis.set('allUsers', JSON.stringify(sendable));
+
+        const todayEnd = new Date().setHours(23, 59, 59, 999);
+
+        redis.expireAt("allUsers", todayEnd/1000);
+
+        return sendable;
+        
     }
 }
